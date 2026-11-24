@@ -114,7 +114,11 @@ class GradeHelperWindow(QMainWindow):
             self.table.setItem(row, 2, QTableWidgetItem(str(self.corrected_grades[row])))
 
     def apply_bonus(self):
-        print("bonus:", self.spin_bonus.value()) 
+        Bonus = self.spin_bonus.value()
+        for i in range(len(self.original_grades)):
+            new_grade = self.original_grades[i] + Bonus
+            self.corrected_grades[i] = min(new_grade, 100)
+        self.update_table()
 
     def update_file(self):
         print("update_file")                        
