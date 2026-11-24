@@ -121,7 +121,14 @@ class GradeHelperWindow(QMainWindow):
         self.update_table()
 
     def update_file(self):
-        print("update_file")                        
+        if not self.selected_file:
+            return
+        with open(self.selected_file, 'w') as f:
+            f.write(self.header)
+            for i in range(len(self.student_ids)):
+                f.write(f'{self.student_ids[i]},{self.corrected_grades[i]}\n')
+
+        QDesktopServices.openUrl(QUrl.fromLocalFile(self.selected_file))                         
 
     def show_about(self):
         self.about_window = AboutWindow()
