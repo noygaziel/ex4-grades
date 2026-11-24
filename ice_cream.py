@@ -91,10 +91,13 @@ class IceCreamWindow(QMainWindow):
         self.plot_graph()
 
     def plot_graph(self):
-        # זמני – גרף לדוגמה. בשלב 3 תחליף אותו בציור האמיתי
         self.ax.clear()
-        self.ax.plot([0, 1, 2, 3], [0, 1, 4, 9])
-        self.ax.set_title("Temporary graph")
+        self.ax.scatter(self.temperature, self.revenue, s=1)
+        self.ax.spines['top'].set_visible(False)
+        self.ax.spines['right'].set_visible(False)
+        self.ax.set_title("Ice Cream revenue vs. Temperture ")
+        self.ax.set_xlabel("Temperature (°C)")
+        self.ax.set_ylabel("Revenue ($)")
         self.canvas.draw()
 
     def show_about(self):
