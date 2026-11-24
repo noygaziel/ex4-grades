@@ -40,7 +40,7 @@ class IceCreamWindow(QMainWindow):
         title.setObjectName("title")
         layout.addWidget(title)
 
-        # --- בחירת קובץ ---
+        
         file_row = QHBoxLayout()
         self.file_label = QLabel("No file selected")
         self.file_label.setObjectName("file_label")
@@ -51,7 +51,7 @@ class IceCreamWindow(QMainWindow):
         file_row.addWidget(self.btn_open)
         layout.addLayout(file_row)
 
-        # --- גרף matplotlib + סרגל כלים (זום, הזזה, שמירה כקובץ) ---
+        #סרגל הכלים
         self.figure = Figure(figsize=(8, 5))
         self.ax = self.figure.add_subplot(111)
         self.canvas = FigureCanvas(self.figure)
@@ -59,7 +59,7 @@ class IceCreamWindow(QMainWindow):
         layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas, 1)
 
-        # --- כפתורים תחתונים ---
+        #  כפתורים תחתונים 
         bottom_row = QHBoxLayout()
         bottom_row.addStretch()
         self.btn_about = QPushButton("About")
@@ -70,9 +70,25 @@ class IceCreamWindow(QMainWindow):
 
         self.plot_graph()
 
-    # ---------------------------------------------------------------
+
+
     def load_file(self):
-        print("load_file")                  # זמני – שלב 2
+        self.selected_file, _ = QFileDialog.getOpenFileName(
+            self, "Select data file", "", "CSV files (*.csv)")
+        if not self.selected_file:
+            return
+        self.file_label.setText(self.selected_file)
+        self.temperature.clear()
+        self.revenue.clear()
+
+        with open(self.selected_file, 'r') as f:
+            f.readline()
+            for line in f:
+                temp, rev = line.strip().split(',')
+                self.temperature.append(float(temp))
+                self.revenue.append(float(rev))
+
+        self.plot_graph()
 
     def plot_graph(self):
         # זמני – גרף לדוגמה. בשלב 3 תחליף אותו בציור האמיתי
