@@ -2,11 +2,11 @@ import sys
 import os
 
 from PySide6.QtCore import Qt, QUrl
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QColor
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QTableWidget, QTableWidgetItem, QSpinBox, QLabel,
-    QHeaderView, QAbstractItemView, QFileDialog,
+    QHeaderView, QAbstractItemView, QFileDialog, QLineEdit, QMessageBox,
 )
 
 from About import AboutWindow
@@ -17,7 +17,6 @@ class GradeHelperWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # ===== [שלך – נתון במטלה] 4 המשתנים =====
         self.student_ids = []
         self.original_grades = []
         self.corrected_grades = []
@@ -25,7 +24,6 @@ class GradeHelperWindow(QMainWindow):
 
         self.about_window = None
 
-        # ===== [UI – מותר AI] =====
         self.setWindowTitle("Grade Helper")
         self.resize(720, 760)
 
@@ -71,6 +69,24 @@ class GradeHelperWindow(QMainWindow):
         bonus_row.addStretch()
         layout.addLayout(bonus_row)
 
+        # BONUS: add points to a single student by ID
+        id_row = QHBoxLayout()
+        id_row.addWidget(QLabel("Student ID:"))
+        self.id_input = QLineEdit()
+        self.id_input.setPlaceholderText("Type an ID or click a row")
+        self.id_input.returnPressed.connect(self.apply_bonus_by_id)
+        id_row.addWidget(self.id_input, 1)
+        id_row.addWidget(QLabel("Points:"))
+        self.spin_id_bonus = QSpinBox()
+        self.spin_id_bonus.setRange(0, 100)
+        id_row.addWidget(self.spin_id_bonus)
+        self.btn_id_bonus = QPushButton("Add to Student")
+        self.btn_id_bonus.setCursor(Qt.PointingHandCursor)
+        self.btn_id_bonus.clicked.connect(self.apply_bonus_by_id)
+        id_row.addWidget(self.btn_id_bonus)
+        layout.addLayout(id_row)
+        self.table.cellClicked.connect(self.fill_id_from_row)
+
         #  כפתורים תחתונים 
         bottom_row = QHBoxLayout()
         self.btn_update = QPushButton("Update File")
@@ -112,6 +128,9 @@ class GradeHelperWindow(QMainWindow):
             self.table.setItem(row, 0, QTableWidgetItem(str(self.student_ids[row])))
             self.table.setItem(row, 1, QTableWidgetItem(str(self.original_grades[row])))
             self.table.setItem(row, 2, QTableWidgetItem(str(self.corrected_grades[row])))
+            # BONUS: green background for grades that received a bonus
+            if self.corrected_grades[row] != self.original_grades[row]:
+                self.table.item(row, 2).setBackground(QColor("#bbf7d0"))
 
     def apply_bonus(self):
         Bonus = self.spin_bonus.value()
@@ -119,6 +138,22 @@ class GradeHelperWindow(QMainWindow):
             new_grade = self.original_grades[i] + Bonus
             self.corrected_grades[i] = min(new_grade, 100)
         self.update_table()
+
+    def fill_id_from_row(self, row, col):
+        # BONUS: clicking a row copies its ID into the ID box
+        if row < len(self.student_ids):
+            self.id_input.setText(str(self.student_ids[row]))
+
+    def apply_bonus_by_id(self):
+        # BONUS: add points to one student, on top of the current corrected grade
+        text = self.id_input.text().strip()
+        if not text.isdigit() or int(text) not in self.student_ids:
+            QMessageBox.warning(self, "Student not found", f"No student with ID '{text}'")
+            return
+        i = self.student_ids.index(int(text))
+        self.corrected_grades[i] = min(self.corrected_grades[i] + self.spin_id_bonus.value(), 100)
+        self.update_table()
+        self.table.selectRow(i)
 
     def update_file(self):
         if not self.selected_file:
